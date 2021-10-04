@@ -1,6 +1,17 @@
 #include <boost/program_options.hpp>
 #include "Simulator.h"
 #include "util_sim.h"
+#include <csignal>
+
+// Pointer to simulator so that we can call `print_info` in `signal_handler`
+Simulator *simulator_p;
+
+static void signal_handler(int signum){
+    std::cout << "Signum: " << signum << "\n\n";
+    size_t memPeak = getPeakRSS();
+    simulator_p->print_info(0, memPeak);
+    exit(0);
+}
 
 int main(int argc, char **argv)
 {
@@ -63,6 +74,19 @@ int main(int argc, char **argv)
 
     assert(shots > 0);
     Simulator simulator(type, shots, seed, r, isReorder, isAlloc);
+
+    // Link simulator to simulator_p for function `signal_handler`
+    simulator_p = &simulator;
+
+    // Setup signal handler
+    struct sigaction sigCHandler;
+    sigCHandler.sa_handler = signal_handler;
+    sigemptyset(&sigCHandler.sa_mask);
+    sigCHandler.sa_flags = 0;
+    // Set signal actions
+    sigaction(SIGINT, &sigCHandler, NULL);
+    sigaction(SIGTERM, &sigCHandler, NULL);
+    sigaction(SIGSEGV, &sigCHandler, NULL);
 
     if (vm.count("sim_qasm"))
     {
