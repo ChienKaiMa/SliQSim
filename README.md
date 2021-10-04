@@ -14,6 +14,33 @@ Next, build the binary file `SliQSim`:
 ```commandline
 make
 ```
+You can jump to the next section if you found the binary `SliQSim` . However, if an error message similar to the following shows up, we suggest to build again with the solution provided below. (Tested on WSL: Ubuntu-18.04 in 2021/10)
+```
+make[1]: Entering directory 'SliQSim/cudd'
+CDPATH="${ZSH_VERSION+.}:" && cd . && /bin/bash SliQSim/cudd/build-aux/missing aclocal-1.16 -I m4
+SliQSim/cudd/build-aux/missing: line 81: aclocal-1.16: command not found
+WARNING: 'aclocal-1.16' is missing on your system.
+         You should only need it if you modified 'acinclude.m4' or
+         'configure.ac' or m4 files included by 'configure.ac'.
+         The 'aclocal' program is part of the GNU Automake package:
+         <http://www.gnu.org/software/automake>
+         It also requires GNU Autoconf, GNU m4 and Perl in order to run:
+         <http://www.gnu.org/software/autoconf>
+         <http://www.gnu.org/software/m4/>
+         <http://www.perl.org/>
+Makefile:983: recipe for target 'aclocal.m4' failed
+make[1]: *** [aclocal.m4] Error 127
+make[1]: Leaving directory 'SliQSim/cudd'
+Makefile:11: recipe for target 'all' failed
+make: *** [all] Error 2
+```
+Solution to the error message (the only difference is the second line of command added):
+```commandline
+cd cudd
+autoreconf -f -i
+./configure --enable-dddmp --enable-obj --enable-shared --enable-static 
+cd ..
+```
 
 ## Execution
 The circuit format being simulated is `OpenQASM` used by IBM's [Qiskit](https://github.com/Qiskit/qiskit), and the gate set supported in this simulator now contains Pauli-X (x), Pauli-Y (y), Pauli-Z (z), Hadamard (h), Phase and its inverse (s and sdg), π/8 and its inverse (t and tdg), Rotation-X with phase π/2 (rx(pi/2)), Rotation-Y with phase π/2 (ry(pi/2)), Controlled-NOT (cx), Controlled-Z (cz), Toffoli (ccx and mcx), SWAP (swap), and Fredkin (cswap). One can find some example benchmarks in [examples](https://github.com/NTU-ALComLab/SliQSim/tree/master/examples) folder. 
