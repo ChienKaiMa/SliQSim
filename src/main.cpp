@@ -20,7 +20,7 @@ int main(int argc, char **argv)
                                                           "this argument is only used when the " 
                                                           "simulation type is set to \"weak\".")
     ("r", po::value<unsigned int>()->default_value(32), "integer bit size.")
-    ("reorder", po::value<bool>()->default_value(1), "allow variable reordering or not.\n"
+    ("reorder", po::value<bool>()->default_value(0), "allow variable reordering or not.\n"
                                                              "0: disable reordering.\n"
                                                              "1: enable reordering (default option).")
     ("alloc", po::value<bool>()->default_value(1), "allocate new BDDs when overflow is detected.\n"
