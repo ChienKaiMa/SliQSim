@@ -16,7 +16,7 @@
 void Simulator::init_simulator(int nQubits)
 {
     n = nQubits; // set the number n here
-    manager = Cudd_Init(n, n, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
+    manager = Cudd_Init(n, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
     // Increase maxCacheHard for better performance on circuits that generate a lot of BDD nodes
     Cudd_SetMaxCacheHard(manager, Cudd_ReadMaxCacheHard(manager) * 128);
     int *constants = new int[n];
