@@ -271,9 +271,10 @@ void Simulator::sim_qasm(std::string qasm)
         }
         else
             measurement();
-        getStatevector();
+        //getStatevector();
+        getAmplitude("0");
     }
-    print_results();
+    //print_results();
 }
 
 
@@ -294,16 +295,20 @@ void Simulator::print_results()
     // write output string based on state_count and statevector
     std::unordered_map<std::string, int>::iterator it;
 
-    run_output = "{ \"counts\": { ";
-    for (it = state_count.begin(); it != state_count.end(); it++)
-    {
-        if (std::next(it) == state_count.end())
-            run_output = run_output + "\"" + it->first + "\": " + std::to_string(it->second);
-        else
-            run_output = run_output + "\"" + it->first + "\": " + std::to_string(it->second) + ", ";
+    if (sim_type == 0) {
+        run_output = "{ \"counts\": { ";
+        for (it = state_count.begin(); it != state_count.end(); it++)
+        {
+            if (std::next(it) == state_count.end())
+                run_output = run_output + "\"" + it->first + "\": " + std::to_string(it->second);
+            else
+                run_output = run_output + "\"" + it->first + "\": " + std::to_string(it->second) + ", ";
+        }
+        run_output = run_output + " } }";
+    } else if (sim_type == 1) {
+        assert(statevector != "null");
+        run_output += "{ \"statevector\": " + statevector + " }";
     }
-    run_output = run_output + " }";
-    run_output += (statevector != "null") ? ", \"statevector\": " + statevector + " }" : " }";
 
     std::cout << run_output << std::endl;
 }

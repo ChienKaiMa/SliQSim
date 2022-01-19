@@ -7,16 +7,18 @@
 #include <sys/time.h> //estimate time
 #include <fstream> //fstream
 #include <sstream> // int to string
-#include <cstdlib> //atoi
 #include <string> //string
 #include <sstream>
 #include <random>
-#include <cmath>
 #include <vector>
+// quadmath.h and float128.hpp should be included before cudd/*
+#include <quadmath.h>
+#include <boost/multiprecision/float128.hpp>
 #include "../cudd/cudd/cudd.h"
 #include "../cudd/cudd/cuddInt.h"
 #include "../cudd/util/util.h"
 
+using boost::multiprecision::float128;
 
 #define PI 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899
 
@@ -56,6 +58,8 @@ public:
     /* measurement */
     void measurement();
     void getStatevector();
+    void getAmplitude(std::string state);
+    // void getAmplitude(long long state);
 
     /* simulation */
     void init_simulator(int n);

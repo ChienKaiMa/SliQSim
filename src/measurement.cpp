@@ -1,5 +1,7 @@
 #include "Simulator.h"
 #include "util_sim.h"
+#include <iomanip>
+#include <limits>
 
 /**Function*************************************************************
 
@@ -355,9 +357,14 @@ void Simulator::measurement()
 ***********************************************************************/
 void Simulator::getStatevector()
 {
-    double oneroot2 = 1 / sqrt(2);
-    double H_factor = pow(oneroot2, k);
-    double re = 0, im = 0;
+    if (n >= 64) {
+        std::cerr << "n >= 64, too many entries to get!\n";
+        std::cerr << "Please use getAmplitude() instead.\n";
+        return;
+    }
+    float128 oneroot2 = 1 / sqrt(2);
+    float128 H_factor = pow((long double)0.5, k/2) * pow(oneroot2, k%2);
+    float128 re = 0, im = 0;
     int *assign = new int[n];
     unsigned long long nEntries = pow(2, n);
     int oneEntry;
@@ -427,5 +434,75 @@ void Simulator::getStatevector()
     }
     statevector += "]";
 
+    delete[] assign;
+}
+
+void Simulator::getAmplitude(std::string state)
+{
+    float128 oneroot2 = 1 / sqrt(2);
+    float128 H_factor = pow((long double)0.5, k/2) * pow(oneroot2, k%2);
+    float128 H_factor_prime = pow(oneroot2, k);
+#ifdef DEBUG
+    std::cout << "k: " << k << "\n";
+    std::cout << std::setprecision(std::numeric_limits<float128>::max_digits10 + 1);
+    std::cout << "Precise H-factor: " << H_factor << "\n";
+    std::cout << "Original H-factor: " << H_factor_prime << "\n";
+#endif
+    float128 re = 0, im = 0;
+
+    // State assignment for CuddEval
+    assert(state.length() <= n);
+    int *assign = new int[n];
+    for (int i = 0; i < state.length(); ++i) {
+        assign[i] = stoi(state.substr(i));
+    }
+    if (state.length() < n) {
+        std::cerr << "The state " << state << " is not fully specified.\n"
+                  << "Auto-filled with zeros.\n";
+        for (int i = state.length(); i < n; ++i) {
+            assign[i] = 0;
+        }
+    }
+    int oneEntry;
+    long long int_value = 0;
+    DdNode *tmp;
+
+    bool isZero = 0;
+    for (int j = 0; j < n; j++)
+    {
+        if (measured_qubits_to_clbits[j] != -1)
+            if (assign[j] != stoi(measure_outcome.substr(n - 1 - j, 1)))
+            {
+                isZero = 1;
+                break;
+            }
+    }
+
+    if (isZero == 0)
+    {
+        for (int j = 0; j < w; j++) // compute every complex value
+        {
+            int_value = 0;
+            for (int h = 0; h < r; h++) // compute every integer
+            {
+                tmp = Cudd_Eval(manager, All_Bdd[j][h], assign);
+                Cudd_Ref(tmp);
+                oneEntry = !(Cudd_IsComplement(tmp));
+                Cudd_RecursiveDeref(manager, tmp);
+                if (h == r - 1)
+                    int_value -= oneEntry * pow(long(2), h + shift);
+                else
+                    int_value += oneEntry * pow(long(2), h + shift);
+            }
+            /* translate to re and im */
+            re += int_value * cos((double) (w - j - 1)/(double)(w) * PI);
+            im += int_value * sin((double) (w - j - 1)/(double)(w) * PI);
+        }
+        re *= H_factor*normalize_factor;
+        im *= H_factor*normalize_factor;
+    }
+
+    // Print complex number
+    std::cout << std::scientific << re << std::showpos << im << std::noshowpos << "i\n";
     delete[] assign;
 }
